@@ -53,12 +53,15 @@ export default function Home() {
           <Login />
         ) : (
           <div>
-            <div className="grid md:grid-cols-2 p-12">
+            <div className="grid md:grid-cols-2 p-4 md:p-12">
               <TodoList session={session} />
               <IncomeList session={session} />
             </div>
             <div className="flex p-12">
-              <p className="grow">Total Balance: LKR {balance}</p>
+              <div className="grow flex flex-col md:flex-row">
+                <p className="">Total Balance :&nbsp;&nbsp;</p>
+                <p>LKR {balance}</p>
+              </div>
               <button
                 className="btn-black w-40"
                 onClick={async () => {

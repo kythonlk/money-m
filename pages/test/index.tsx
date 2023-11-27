@@ -16,8 +16,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="w-full h-full bg-gray-200">
-
-        <p>dfsd</p>
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8"></div>
       </div>
     </>
   )

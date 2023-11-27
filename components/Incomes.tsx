@@ -185,8 +185,8 @@ const Income = ({ income, onDelete }: { income: Incomes; onDelete: () => void })
       <div className="flex items-center px-4 py-4 sm:px-6">
         <div className="min-w-0 flex-1 flex items-center">
           <div className="text-sm leading-5 font-medium truncate flex">
-            <div className="flex-auto  w-96">{income.task} </div>
-            <div className="flex-auto  w-8">-</div>
+            <div className="flex-auto  md:w-96">{income.task} </div>
+            <div className="flex-auto  md:w-8">-</div>
             <div className="flex-auto">LKR {income.amount}</div>
           </div>
         </div>
