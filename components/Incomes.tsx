@@ -121,7 +121,7 @@ const IncomeList = ({ session }: { session: Session }) => {
         className="flex gap-2 my-2"
       >
         <input
-          className="rounded w-full p-2"
+          className="rounded w-full p-2 border-2 border-black"
           type="text"
           placeholder="Add Note"
           value={newTaskText}
@@ -131,7 +131,7 @@ const IncomeList = ({ session }: { session: Session }) => {
           }}
         />
         <input
-          className="rounded w-full p-2"
+          className="rounded w-full p-2 border-2 border-black"
           type="number"
           placeholder="Enter Amount"
           value={amountText}

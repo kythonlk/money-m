@@ -131,9 +131,9 @@ export default function TodoList({ session }: { session: Session }) {
         className="flex gap-2 my-2"
       >
         <input
-          className="rounded w-full p-2"
+          className="rounded w-full p-2 border-2 border-black"
           type="text"
-          placeholder="make coffee"
+          placeholder="Add Note"
           value={newTaskText}
           onChange={(e) => {
             setErrorText('');
@@ -141,9 +141,9 @@ export default function TodoList({ session }: { session: Session }) {
           }}
         />
         <input
-          className="rounded w-full p-2"
+          className="rounded w-full p-2 border-2 border-black"
           type="number"
-          placeholder="347"
+          placeholder="Add Amount"
           value={amountText}
           onChange={(e) => {
             setErrorText('');
