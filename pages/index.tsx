@@ -2,10 +2,43 @@ import Head from 'next/head'
 import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Auth, ThemeSupa } from '@supabase/auth-ui-react'
 import TodoList from '@/components/TodoList'
+import IncomeList from '@/components/Incomes'
+import Login from '@/components/Login'
+import React, { useEffect, useState } from 'react';
 
 export default function Home() {
-  const session = useSession()
-  const supabase = useSupabaseClient()
+  const session = useSession();
+  const supabase = useSupabaseClient();
+  const [balance, setBalance] = useState<number>(0);
+
+  const updateBalance = async () => {
+    if (!session) return;
+
+    const { data: expenses } = await supabase
+      .from("todos")
+      .select("amount")
+      .filter("user_id", "eq", session.user.id);
+
+    const { data: incomes } = await supabase
+      .from("income")
+      .select("amount")
+      .filter("user_id", "eq", session.user.id);
+
+    const expensesTotal = expenses
+      ? expenses.reduce((acc, expense) => acc + expense.amount, 0)
+      : 0;
+    const incomesTotal = incomes
+      ? incomes.reduce((acc, income) => acc + income.amount, 0)
+      : 0;
+
+    const balanceResult = incomesTotal - expensesTotal;
+
+    setBalance(balanceResult);
+  };
+
+  useEffect(() => {
+    updateBalance();
+  }, [session]);
 
   return (
     <>
@@ -17,34 +50,28 @@ export default function Home() {
       </Head>
       <div className="w-full h-full bg-gray-200">
         {!session ? (
-          <div className="min-w-full min-h-screen flex items-center justify-center">
-            <div className="w-full h-full flex justify-center items-center p-4">
-              <div className="w-full h-full sm:h-auto sm:w-2/5 max-w-sm p-5 bg-white shadow flex flex-col text-base">
-                <span className="font-sans text-4xl text-center pb-2 mb-1 border-b mx-4 align-center">
-                  Login
-                </span>
-                <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} theme="dark" />
-              </div>
-            </div>
-          </div>
+          <Login />
         ) : (
-          <div
-            className="w-full h-full flex flex-col justify-center items-center p-4"
-            style={{ minWidth: 250, maxWidth: 600, margin: 'auto' }}
-          >
-            <TodoList session={session} />
-            <button
-              className="btn-black w-full mt-12"
-              onClick={async () => {
-                const { error } = await supabase.auth.signOut()
-                if (error) console.log('Error logging out:', error.message)
-              }}
-            >
-              Logout
-            </button>
+          <div>
+            <div className="grid md:grid-cols-2 p-12">
+              <TodoList session={session} />
+              <IncomeList session={session} />
+            </div>
+            <div className="flex p-12">
+              <p className="grow">Total Balance: LKR {balance}</p>
+              <button
+                className="btn-black w-40"
+                onClick={async () => {
+                  const { error } = await supabase.auth.signOut();
+                  if (error) console.log("Error logging out:", error.message);
+                }}
+              >
+                Logout
+              </button>
+            </div>
           </div>
         )}
       </div>
     </>
-  )
+  );
 }

@@ -16,6 +16,7 @@ export interface Database {
           is_complete: boolean | null
           task: string | null
           user_id: string
+          amount: number | null
         }
         Insert: {
           id?: number
@@ -23,6 +24,32 @@ export interface Database {
           is_complete?: boolean | null
           task?: string | null
           user_id: string
+          amount: number | null
+        }
+        Update: {
+          id?: number
+          inserted_at?: string
+          is_complete?: boolean | null
+          task?: string | null
+          user_id?: string
+        }
+      }
+      income: {
+        Row: {
+          id: number
+          inserted_at: string
+          is_complete: boolean | null
+          task: string | null
+          user_id: string
+          amount: number | null
+        }
+        Insert: {
+          id?: number
+          inserted_at?: string
+          is_complete?: boolean | null
+          task?: string | null
+          user_id: string
+          amount: number | null
         }
         Update: {
           id?: number
