@@ -4,7 +4,7 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 export default function Login() {
     const supabase = useSupabaseClient()
-
+      
     return(
         <>
             <section className="bg-gray-50 dark:bg-gray-900">
@@ -17,7 +17,7 @@ export default function Login() {
                         <h1 className="text-xl font-bold leading-tight text-center tracking-tight text-gray-900 md:text-2xl dark:text-white">
                             Sign in to your account
                         </h1>
-                        <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} theme="dark" />
+                        <Auth supabaseClient={supabase}  providers={["google"]} appearance={{ theme: ThemeSupa }} theme="dark" />
                     </div>
                 </div>
             </div>
