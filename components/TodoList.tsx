@@ -122,7 +122,7 @@ export default function TodoList({ session }: { session: Session }) {
 
   return (
     <div className="w-full p-4">
-      <h1 className="mb-12">Expenses</h1>
+      <h1 className="mb-12 text-2xl md:text-4xl">Expenses</h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();

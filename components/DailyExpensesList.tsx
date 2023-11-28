@@ -3,7 +3,16 @@ import { Session, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-type Incomes = Database['public']['Tables']['income']['Row'];
+type Todos = Database['public']['Tables']['todos']['Row'];
+
+interface TodoListProps {
+  session: Session;
+  updateBalance?: () => Promise<void>; // Make sure to add this line
+}
+
+const CURRENCY_API_KEY = '0f09fa70b1012bbc2ae56829';
+const FROM_CURRENCY = 'LKR';
+const TO_CURRENCY = 'AED';
 
 export type CurrencyConversionResult = {
   totalAmount: number;
@@ -11,10 +20,6 @@ export type CurrencyConversionResult = {
 };
 
 export const calculateCurrencyConversion = async (totalAmount: number): Promise<CurrencyConversionResult> => {
-  const CURRENCY_API_KEY = '0f09fa70b1012bbc2ae56829';
-  const FROM_CURRENCY = 'LKR';
-  const TO_CURRENCY = 'AED';
-
   try {
     const response = await axios.get(
       `https://open.er-api.com/v6/latest/${FROM_CURRENCY}?apikey=${CURRENCY_API_KEY}`
@@ -35,9 +40,9 @@ export const calculateCurrencyConversion = async (totalAmount: number): Promise<
   }
 };
 
-const IncomeList = ({ session }: { session: Session }) => {
+export default function TodoList({ session }: { session: Session }) {
   const supabase = useSupabaseClient<Database>();
-  const [incomes, setIncomes] = useState<Incomes[]>([]);
+  const [todos, setTodos] = useState<Todos[]>([]);
   const [newTaskText, setNewTaskText] = useState('');
   const [amountText, setAmountText] = useState('');
   const [errorText, setErrorText] = useState('');
@@ -47,44 +52,49 @@ const IncomeList = ({ session }: { session: Session }) => {
   const user = session.user;
 
   useEffect(() => {
-    const fetchIncome = async () => {
-      const { data: incomes, error } = await supabase
-        .from('income')
+    const fetchTodos = async () => {
+      const { data: todos, error } = await supabase
+        .from('todos')
         .select('*')
         .order('id', { ascending: true });
 
       if (error) {
         console.log('error', error);
       } else {
-        setIncomes(incomes);
-        updateTotalAmount(incomes);
+        setTodos(todos);
+        updateTotalAmount(todos);
       }
     };
 
-    fetchIncome();
+    fetchTodos();
   }, [supabase]);
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
-      if (totalAmount !== null) {
+      try {
         const result = await calculateCurrencyConversion(totalAmount);
         setConvertedTotalAmount(result.convertedTotalAmount);
+      } catch (error: any) {
+        console.error("Error fetching exchange rate:", error.message);
       }
     };
 
-    fetchExchangeRate();
+    if (totalAmount !== null) {
+      fetchExchangeRate();
+    }
   }, [totalAmount]);
 
-  const updateTotalAmount = (income: Incomes[]) => {
-    const sum = income.reduce((acc, income) => acc + (income.amount ?? 0), 0);
+  const updateTotalAmount = (todos: Todos[]) => {
+    const sum = todos.reduce((acc, todo) => acc + (todo.amount ?? 0), 0);
     setTotalAmount(sum);
   };
+  
 
-  const addIncome = async (taskText: string) => {
+  const addTodo = async (taskText: string) => {
     let task = taskText.trim();
     if (task.length) {
-      const { data: income, error } = await supabase
-        .from('income')
+      const { data: todo, error } = await supabase
+        .from('todos')
         .insert({ task, user_id: user.id, amount: parseFloat(amountText) })
         .select()
         .single();
@@ -92,19 +102,19 @@ const IncomeList = ({ session }: { session: Session }) => {
       if (error) {
         setErrorText(error.message);
       } else {
-        setIncomes([...incomes, income]);
+        setTodos([...todos, todo]);
         setNewTaskText('');
         setAmountText('');
-        updateTotalAmount([...incomes, income]);
+        updateTotalAmount([...todos, todo]);
       }
     }
   };
 
-  const deleteIncome = async (id: number) => {
+  const deleteTodo = async (id: number) => {
     try {
-      await supabase.from('income').delete().eq('id', id).throwOnError();
-      setIncomes(incomes.filter((x) => x.id !== id));
-      updateTotalAmount(incomes.filter((x) => x.id !== id));
+      await supabase.from('todos').delete().eq('id', id).throwOnError();
+      setTodos(todos.filter((x) => x.id !== id));
+      updateTotalAmount(todos.filter((x) => x.id !== id));
     } catch (error) {
       console.log('error', error);
     }
@@ -112,11 +122,12 @@ const IncomeList = ({ session }: { session: Session }) => {
 
   return (
     <div className="w-full p-4">
-      <h1 className="mb-12 text-2xl md:text-4xl">Incomes</h1>
+      <h1 className="mb-12 text-2xl md:text-4xl">Daily Expenses</h1>
+      (dev mode - these not working yet)
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          addIncome(newTaskText);
+          addTodo(newTaskText);
         }}
         className="flex gap-2 my-2"
       >
@@ -133,7 +144,7 @@ const IncomeList = ({ session }: { session: Session }) => {
         <input
           className="rounded w-full p-2 border-2 border-black"
           type="number"
-          placeholder="Enter Amount"
+          placeholder="Add Amount"
           value={amountText}
           onChange={(e) => {
             setErrorText('');
@@ -147,29 +158,29 @@ const IncomeList = ({ session }: { session: Session }) => {
       {!!errorText && <Alert text={errorText} />}
       <div className="bg-white shadow overflow-hidden rounded-md">
         <ul>
-          {incomes.map((income) => (
-            <Income key={income.id} income={income} onDelete={() => deleteIncome(income.id)} />
+          {todos.map((todo) => (
+            <Todo key={todo.id} todo={todo} onDelete={() => deleteTodo(todo.id)} />
           ))}
         </ul>
       </div>
-      <p className="pt-4">
-        Total Income: LKR {totalAmount} - AED{' '}
+      <p  className="pt-4">
+        Total Expenses: LKR {totalAmount} - AED{' '}
         {convertedTotalAmount !== null ? convertedTotalAmount.toFixed(2) : 'Loading...'}
       </p>
     </div>
   );
-};
+}
 
-const Income = ({ income, onDelete }: { income: Incomes; onDelete: () => void }) => {
+const Todo = ({ todo, onDelete }: { todo: Todos; onDelete: () => void }) => {
   const supabase = useSupabaseClient<Database>();
-  const [isCompleted, setIsCompleted] = useState(income.is_complete);
+  const [isCompleted, setIsCompleted] = useState(todo.is_complete);
 
   const toggle = async () => {
     try {
       const { data } = await supabase
-        .from('income')
+        .from('todos')
         .update({ is_complete: !isCompleted })
-        .eq('id', income.id)
+        .eq('id', todo.id)
         .throwOnError()
         .select()
         .single();
@@ -185,9 +196,9 @@ const Income = ({ income, onDelete }: { income: Incomes; onDelete: () => void })
       <div className="flex items-center px-4 py-4 sm:px-6">
         <div className="min-w-0 flex-1 flex items-center">
           <div className="text-sm leading-5 font-medium truncate flex">
-            <div className="flex-auto  md:w-96">{income.task} </div>
+            <div className="flex-auto  md:w-96">{todo.task} </div>
             <div className="flex-auto  md:w-8">-</div>
-            <div className="flex-auto">LKR {income.amount}</div>
+            <div className="flex-auto">LKR {todo.amount}</div>
           </div>
         </div>
         <div>
@@ -226,5 +237,3 @@ const Alert = ({ text }: { text: string }) => (
     <div className="text-sm leading-5 text-red-700">{text}</div>
   </div>
 );
-
-export default IncomeList;
