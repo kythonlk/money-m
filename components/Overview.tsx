@@ -4,6 +4,11 @@ import { Pie } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+interface OverviewProps {
+  balance: number;
+  expenses: number;
+  income: number;
+}
 
 
 const Overview: React.FC<OverviewProps> = ({ balance, expenses, income }) => {
